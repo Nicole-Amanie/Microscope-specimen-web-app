@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Specimen Size Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <h1>Specimen Size Calculator</h1>
+    <form method="post">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="number" name="microscope_size" placeholder="Microscope Size" step="any" required>
+        <input type="number" name="magnification" placeholder="Magnification" step="any" required>
+        <select name="unit">
+            <option value="mm">mm</option>
+            <option value="µm" selected>µm</option>
+            <option value="nm">nm</option>
+        </select>
+        <button type="submit">Calculate & Save</button>
+    </form>
+
+    <h2>Saved Records</h2>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Microscope Size</th>
+            <th>Magnification</th>
+            <th>Real-life Size</th>
+            <th>Unit</th>
+            <th>Action</th>
+        </tr>
+        {% for s in specimens %}
+        <tr>
+            <td>{{ s[1] }}</td>
+            <td>{{ s[2] }}</td>
+            <td>{{ s[3] }}</td>
+            <td>{{ "%.6f" | format(s[4]) }}</td>
+            <td>{{ s[5] }}</td>
+            <td><a href="/delete/{{ s[0] }}" onclick="return confirm('Delete this record?');">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+
+</html>
