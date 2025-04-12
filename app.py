@@ -20,7 +20,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.route("/", methods=["GET", "HEAD"])
+@app.route("/", methods=["GET", "POST", "HEAD"])
 def index():
     if request.method == "POST":
         username = request.form["username"]
@@ -39,8 +39,9 @@ def index():
         conn.commit()
         conn.close()
 
-        return render_template('index.html')
+        return redirect("/")
 
+    # For GET or HEAD, just fetch and display records
     conn = sqlite3.connect("specimen_data.db")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM specimens")
