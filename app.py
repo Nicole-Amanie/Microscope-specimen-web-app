@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
+import os
 
 app = Flask(__name__)
 
@@ -20,45 +21,55 @@ def init_db():
     conn.commit()
     conn.close()
 
+# ---------- Home Route ----------
 @app.route("/", methods=["GET", "POST", "HEAD"])
 def index():
     if request.method == "POST":
-        username = request.form["username"]
-        microscope_size = float(request.form["microscope_size"])
-        magnification = float(request.form["magnification"])
-        unit = request.form["unit"]
+        try:
+            username = request.form["username"]
+            microscope_size = float(request.form["microscope_size"])
+            magnification = float(request.form["magnification"])
+            unit = request.form["unit"]
 
-        real_life_size = microscope_size / magnification
+            real_life_size = microscope_size / magnification
 
+            conn = sqlite3.connect("specimen_data.db")
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO specimens (username, microscope_size, magnification, real_life_size, unit)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (username, microscope_size, magnification, real_life_size, unit))
+            conn.commit()
+            conn.close()
+            return redirect("/")
+        except Exception as e:
+            return f"Error in POST request: {e}", 400
+
+    # For GET and HEAD: just show the template (or a fallback response)
+    try:
         conn = sqlite3.connect("specimen_data.db")
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO specimens (username, microscope_size, magnification, real_life_size, unit)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (username, microscope_size, magnification, real_life_size, unit))
-        conn.commit()
+        cursor.execute("SELECT * FROM specimens")
+        specimens = cursor.fetchall()
         conn.close()
+        return render_template("index.html", specimens=specimens)
+    except Exception as e:
+        return f"Error rendering index.html or fetching data: {e}", 500
 
-        return redirect("/")
-
-    # For GET or HEAD, just fetch and display records
-    conn = sqlite3.connect("specimen_data.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM specimens")
-    specimens = cursor.fetchall()
-    conn.close()
-
-    return render_template("index.html", specimens=specimens)
-
+# ---------- Delete ----------
 @app.route("/delete/<int:specimen_id>")
 def delete(specimen_id):
-    conn = sqlite3.connect("specimen_data.db")
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM specimens WHERE id = ?", (specimen_id,))
-    conn.commit()
-    conn.close()
-    return redirect("/")
+    try:
+        conn = sqlite3.connect("specimen_data.db")
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM specimens WHERE id = ?", (specimen_id,))
+        conn.commit()
+        conn.close()
+        return redirect("/")
+    except Exception as e:
+        return f"Error deleting record: {e}", 500
 
+# ---------- Main ----------
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
