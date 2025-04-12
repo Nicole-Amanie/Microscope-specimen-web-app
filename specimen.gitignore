@@ -1,0 +1,5 @@
+specimen_data.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
