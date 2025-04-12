@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-import os
 
 app = Flask(__name__)
 
@@ -24,6 +23,8 @@ def init_db():
 # ---------- Home Route ----------
 @app.route("/", methods=["GET", "POST", "HEAD"])
 def index():
+    init_db()  # 👈 Ensure table exists before any query
+
     if request.method == "POST":
         try:
             username = request.form["username"]
@@ -45,7 +46,6 @@ def index():
         except Exception as e:
             return f"Error in POST request: {e}", 400
 
-    # For GET and HEAD: just show the template (or a fallback response)
     try:
         conn = sqlite3.connect("specimen_data.db")
         cursor = conn.cursor()
@@ -71,5 +71,4 @@ def delete(specimen_id):
 
 # ---------- Main ----------
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
